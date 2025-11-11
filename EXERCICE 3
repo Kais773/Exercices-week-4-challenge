@@ -1,0 +1,311 @@
+% ====================================================================
+% EXERCISE 3 - VARIANT B: UNBALANCED THREE-PHASE STAR SYSTEM
+% ====================================================================
+
+clear; clc; close all;
+
+%% GIVEN DATA
+Uph = 220;          % Phase voltage (V)
+f = 50;             % Frequency (Hz)
+
+% Loads specified by power
+PA = 3000;          % Active power phase A (W)
+cos_phiA = 0.8;     % Power factor phase A (lagging)
+
+PB = 2500;          % Active power phase B (W)
+cos_phiB = 1.0;     % Power factor phase B (resistive)
+
+PC = 2000;          % Active power phase C (W)
+cos_phiC = 0.9;     % Power factor phase C (lagging)
+
+%% CALCULATIONS
+
+% Step 1: Calculate currents per phase
+IA_mag = PA / (Uph * cos_phiA);
+IB_mag = PB / (Uph * cos_phiB);
+IC_mag = PC / (Uph * cos_phiC);
+
+% Step 2: Calculate impedances
+phiA = acos(cos_phiA);
+phiB = acos(cos_phiB);
+phiC = acos(cos_phiC);
+
+ZA_mag = Uph / IA_mag;
+ZB_mag = Uph / IB_mag;
+ZC_mag = Uph / IC_mag;
+
+% Step 3: Form phasor expressions
+% Voltage phasors (taking UAN as reference)
+UAN = Uph * exp(1j*0);
+UBN = Uph * exp(1j*deg2rad(-120));
+UCN = Uph * exp(1j*deg2rad(120));
+
+% Current phasors (lag voltage by phi for inductive)
+IA = IA_mag * exp(1j*deg2rad(-rad2deg(phiA)));
+IB = IB_mag * exp(1j*deg2rad(-120));  % Resistive, same angle as voltage
+IC = IC_mag * exp(1j*deg2rad(120 - rad2deg(phiC)));
+
+% Step 4: Calculate neutral current
+IN = IA + IB + IC;
+IN_mag = abs(IN);
+IN_angle = angle(IN) * 180/pi;
+
+% Step 5: Calculate reactive power per phase
+tan_phiA = tan(phiA);
+tan_phiB = tan(phiB);
+tan_phiC = tan(phiC);
+
+QA = PA * tan_phiA;
+QB = 0;  % Resistive
+QC = PC * tan_phiC;
+
+% Step 6: Total power
+Ptotal = PA + PB + PC;
+Qtotal = QA + QB + QC;
+Stotal = sqrt(Ptotal^2 + Qtotal^2);
+
+% Step 7: Overall system power factor
+cos_phi_system = Ptotal / Stotal;
+
+% Step 8: Individual phase PF correction to 0.95
+target_pf = 0.95;
+phi_target = acos(target_pf);
+
+% Phase A correction
+QA_new = PA * tan(phi_target);
+QC_A = QA - QA_new;
+if QC_A > 0
+    XC_A = Uph^2 / QC_A;
+    CA = 1 / (2*pi*f*XC_A);
+else
+    CA = 0;
+end
+
+% Phase B correction (already resistive, needs capacitor)
+QB_new = PB * tan(phi_target);
+QC_B = 0 - QB_new;  % Need to add capacitive
+XC_B = Uph^2 / abs(QC_B);
+CB = 1 / (2*pi*f*XC_B);
+
+% Phase C correction
+QC_new = PC * tan(phi_target);
+QC_C = QC - QC_new;
+if QC_C > 0
+    XC_C = Uph^2 / QC_C;
+    CC = 1 / (2*pi*f*XC_C);
+else
+    CC = 0;
+end
+
+%% PRINT RESULTS
+fprintf('\n========== EXERCISE 3 - VARIANT B RESULTS ==========\n');
+fprintf('UNBALANCED STAR SYSTEM WITH NEUTRAL\n\n');
+
+fprintf('PHASE A (Inductive, PF = %.2f):\n', cos_phiA);
+fprintf('  IA = %.4f A ∠ %.2f°\n', IA_mag, angle(IA)*180/pi);
+fprintf('  |ZA| = %.4f Ω ∠ %.2f°\n', ZA_mag, rad2deg(phiA));
+fprintf('  PA = %.2f W, QA = %.2f VAR\n', PA, QA);
+
+fprintf('\nPHASE B (Resistive, PF = %.2f):\n', cos_phiB);
+fprintf('  IB = %.4f A ∠ %.2f°\n', IB_mag, angle(IB)*180/pi);
+fprintf('  |ZB| = %.4f Ω ∠ %.2f°\n', ZB_mag, rad2deg(phiB));
+fprintf('  PB = %.2f W, QB = %.2f VAR\n', PB, QB);
+
+fprintf('\nPHASE C (Inductive, PF = %.2f):\n', cos_phiC);
+fprintf('  IC = %.4f A ∠ %.2f°\n', IC_mag, angle(IC)*180/pi);
+fprintf('  |ZC| = %.4f Ω ∠ %.2f°\n', ZC_mag, rad2deg(phiC));
+fprintf('  PC = %.2f W, QC = %.2f VAR\n', PC, QC);
+
+fprintf('\nNEUTRAL CURRENT (UNBALANCED SYSTEM):\n');
+fprintf('  IN = %.4f A ∠ %.2f°\n', IN_mag, IN_angle);
+fprintf('  ⚠ IN ≠ 0 → SYSTEM IS UNBALANCED!\n');
+
+fprintf('\nTOTAL THREE-PHASE POWER:\n');
+fprintf('  Ptotal = %.2f W = %.3f kW\n', Ptotal, Ptotal/1000);
+fprintf('  Qtotal = %.2f VAR = %.3f kVAR\n', Qtotal, Qtotal/1000);
+fprintf('  Stotal = %.2f VA = %.3f kVA\n', Stotal, Stotal/1000);
+fprintf('  Overall PF = %.4f = %.2f%%\n', cos_phi_system, cos_phi_system*100);
+
+fprintf('\nPOWER FACTOR CORRECTION (to 95%%):\n');
+fprintf('  Phase A: C = %.2f µF\n', CA*1e6);
+fprintf('  Phase B: C = %.2f µF\n', CB*1e6);
+fprintf('  Phase C: C = %.2f µF\n', CC*1e6);
+fprintf('=====================================================\n\n');
+
+%% FIGURE 1: PHASOR DIAGRAM - UNBALANCED CURRENTS
+figure('Position', [100, 100, 1000, 800]);
+hold on; grid on;
+
+% Plot voltage phasors
+quiver(0, 0, real(UAN), imag(UAN), 0, 'r', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(UBN), imag(UBN), 0, 'g', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(UCN), imag(UCN), 0, 'b', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+
+% Scale currents for visibility
+scale = 220/max([IA_mag IB_mag IC_mag]) * 0.7;
+IA_scaled = IA * scale;
+IB_scaled = IB * scale;
+IC_scaled = IC * scale;
+IN_scaled = IN * scale;
+
+% Plot current phasors
+quiver(0, 0, real(IA_scaled), imag(IA_scaled), 0, 'r--', 'LineWidth', 2.5, 'MaxHeadSize', 0.5);
+quiver(0, 0, real(IB_scaled), imag(IB_scaled), 0, 'g--', 'LineWidth', 2.5, 'MaxHeadSize', 0.5);
+quiver(0, 0, real(IC_scaled), imag(IC_scaled), 0, 'b--', 'LineWidth', 2.5, 'MaxHeadSize', 0.5);
+
+% Plot neutral current (IMPORTANT!)
+quiver(0, 0, real(IN_scaled), imag(IN_scaled), 0, 'm', 'LineWidth', 4, 'MaxHeadSize', 0.6);
+
+% Labels
+text(real(UAN)*1.1, imag(UAN)*1.1, 'U_{AN}', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'r');
+text(real(UBN)*1.1, imag(UBN)*1.1, 'U_{BN}', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'g');
+text(real(UCN)*1.1, imag(UCN)*1.1, 'U_{CN}', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'b');
+
+text(real(IA_scaled)*1.15, imag(IA_scaled)*1.15, sprintf('I_A = %.2f A', IA_mag), 'FontSize', 11, 'Color', 'r', 'FontWeight', 'bold');
+text(real(IB_scaled)*1.15, imag(IB_scaled)*1.15, sprintf('I_B = %.2f A', IB_mag), 'FontSize', 11, 'Color', 'g', 'FontWeight', 'bold');
+text(real(IC_scaled)*1.15, imag(IC_scaled)*1.15, sprintf('I_C = %.2f A', IC_mag), 'FontSize', 11, 'Color', 'b', 'FontWeight', 'bold');
+text(real(IN_scaled)*1.15, imag(IN_scaled)*1.15, sprintf('I_N = %.2f A (≠0!)', IN_mag), 'FontSize', 12, 'Color', 'm', 'FontWeight', 'bold', 'BackgroundColor', [1 1 0.8]);
+
+% Warning box
+text(0, -280, '⚠ UNBALANCED SYSTEM: Neutral current ≠ 0', 'FontSize', 13, 'FontWeight', 'bold', ...
+    'BackgroundColor', [1 0.9 0.9], 'HorizontalAlignment', 'center', 'EdgeColor', 'r', 'LineWidth', 2);
+
+axis equal;
+xlim([-300 300]);
+ylim([-300 300]);
+xlabel('Real Axis', 'FontSize', 13, 'FontWeight', 'bold');
+ylabel('Imaginary Axis', 'FontSize', 13, 'FontWeight', 'bold');
+title({'Phasor Diagram - Unbalanced System', sprintf('Note: I_N = %.2f A shows system is UNBALANCED', IN_mag)}, ...
+    'FontSize', 14, 'FontWeight', 'bold');
+legend('U_{AN}', 'U_{BN}', 'U_{CN}', 'I_A', 'I_B', 'I_C', 'I_N (Neutral)', 'Location', 'best');
+hold off;
+
+saveas(gcf, 'ex3_phasor_unbalanced.png');
+
+%% FIGURE 2: POWER PER PHASE COMPARISON
+figure('Position', [150, 150, 1000, 700]);
+
+% Bar chart for powers
+phases = {'Phase A\n(PF=0.8)', 'Phase B\n(PF=1.0)', 'Phase C\n(PF=0.9)'};
+P_data = [PA PB PC];
+Q_data = [QA QB QC];
+S_data = [PA/cos_phiA PB/cos_phiB PC/cos_phiC];
+
+x = 1:3;
+bar_width = 0.25;
+
+hold on; grid on;
+bar(x - bar_width, P_data, bar_width, 'FaceColor', [0.2 0.6 1]);
+bar(x, Q_data, bar_width, 'FaceColor', [1 0.4 0.4]);
+bar(x + bar_width, S_data, bar_width, 'FaceColor', [0.4 1 0.4]);
+
+% Add value labels
+for i = 1:3
+    text(x(i)-bar_width, P_data(i)+100, sprintf('%.0f W', P_data(i)), ...
+        'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontSize', 10);
+    text(x(i), Q_data(i)+100, sprintf('%.0f VAR', Q_data(i)), ...
+        'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontSize', 10);
+    text(x(i)+bar_width, S_data(i)+100, sprintf('%.0f VA', S_data(i)), ...
+        'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontSize', 10);
+end
+
+set(gca, 'XTick', x, 'XTickLabel', phases);
+ylabel('Power (W, VAR, VA)', 'FontSize', 13, 'FontWeight', 'bold');
+title('Power Distribution Per Phase (Unbalanced)', 'FontSize', 14, 'FontWeight', 'bold');
+legend('Active Power (P)', 'Reactive Power (Q)', 'Apparent Power (S)', 'Location', 'northwest', 'FontSize', 11);
+ylim([0 max(S_data)*1.2]);
+hold off;
+
+saveas(gcf, 'ex3_power_per_phase.png');
+
+%% FIGURE 3: TOTAL POWER TRIANGLE
+figure('Position', [200, 200, 900, 700]);
+hold on; grid on;
+
+plot([0 Ptotal], [0 0], 'b', 'LineWidth', 4);
+plot([Ptotal Ptotal], [0 Qtotal], 'r', 'LineWidth', 4);
+plot([0 Ptotal], [0 Qtotal], 'g', 'LineWidth', 4);
+fill([0 Ptotal Ptotal 0], [0 0 Qtotal 0], [0.9 0.95 1], 'FaceAlpha', 0.3);
+
+% Labels
+text(Ptotal/2, -300, sprintf('P_{total} = %.2f kW', Ptotal/1000), ...
+    'FontSize', 13, 'FontWeight', 'bold', 'Color', 'b', 'HorizontalAlignment', 'center');
+text(Ptotal+300, Qtotal/2, sprintf('Q_{total} = %.2f kVAR', Qtotal/1000), ...
+    'FontSize', 13, 'FontWeight', 'bold', 'Color', 'r');
+text(Ptotal/2-200, Qtotal/2+200, sprintf('S_{total} = %.2f kVA', Stotal/1000), ...
+    'FontSize', 13, 'FontWeight', 'bold', 'Color', 'g');
+
+% Angle
+phi_system = acos(cos_phi_system);
+angle_arc = linspace(0, phi_system, 50);
+arc_r = Ptotal * 0.15;
+plot(arc_r*cos(angle_arc), arc_r*sin(angle_arc), 'k', 'LineWidth', 2);
+text(arc_r*1.8, arc_r*0.4, sprintf('φ = %.2f°', rad2deg(phi_system)), 'FontSize', 12, 'FontWeight', 'bold');
+
+% System PF
+text(Ptotal*0.5, Qtotal+800, sprintf('Overall System PF = %.2f%%', cos_phi_system*100), ...
+    'FontSize', 13, 'FontWeight', 'bold', 'BackgroundColor', [1 1 0.8], ...
+    'HorizontalAlignment', 'center', 'EdgeColor', 'k', 'LineWidth', 1.5);
+
+axis equal;
+xlim([-Ptotal*0.2 Ptotal*1.3]);
+ylim([-Qtotal*0.3 Qtotal*1.4]);
+xlabel('Active Power P (W)', 'FontSize', 13, 'FontWeight', 'bold');
+ylabel('Reactive Power Q (VAR)', 'FontSize', 13, 'FontWeight', 'bold');
+title('Total System Power Triangle', 'FontSize', 14, 'FontWeight', 'bold');
+legend('P (Active)', 'Q (Reactive)', 'S (Apparent)', 'Location', 'southeast');
+hold off;
+
+saveas(gcf, 'ex3_total_power.png');
+
+%% FIGURE 4: POWER FACTOR CORRECTION COMPARISON
+figure('Position', [250, 250, 1200, 600]);
+
+% Before correction
+subplot(1,2,1);
+pf_before = [cos_phiA cos_phiB cos_phiC] * 100;
+colors = [1 0.6 0.6; 0.6 1 0.6; 0.6 0.6 1];
+
+hold on; grid on;
+for i = 1:3
+    bar(i, pf_before(i), 'FaceColor', colors(i,:), 'EdgeColor', 'k', 'LineWidth', 1.5);
+    text(i, pf_before(i)+2, sprintf('%.1f%%', pf_before(i)), ...
+        'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontSize', 11);
+end
+yline(95, 'r--', 'LineWidth', 2, 'Label', 'Target: 95%', 'LabelHorizontalAlignment', 'left', 'FontSize', 11);
+ylim([0 105]);
+set(gca, 'XTick', 1:3, 'XTickLabel', {'Phase A', 'Phase B', 'Phase C'});
+ylabel('Power Factor (%)', 'FontSize', 12, 'FontWeight', 'bold');
+title('BEFORE Correction', 'FontSize', 13, 'FontWeight', 'bold', 'Color', 'r');
+hold off;
+
+% After correction
+subplot(1,2,2);
+pf_after = [95 95 95];
+
+hold on; grid on;
+for i = 1:3
+    bar(i, pf_after(i), 'FaceColor', [0.4 1 0.4], 'EdgeColor', 'k', 'LineWidth', 1.5);
+    text(i, pf_after(i)+2, sprintf('%.1f%%', pf_after(i)), ...
+        'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontSize', 11);
+    
+    % Show capacitor requirement
+    C_values = [CA CB CC];
+    text(i, 85, sprintf('C = %.1f µF', C_values(i)*1e6), ...
+        'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontSize', 10, ...
+        'BackgroundColor', 'yellow');
+end
+yline(95, 'g--', 'LineWidth', 2, 'Label', 'Target: 95%', 'LabelHorizontalAlignment', 'left', 'FontSize', 11);
+ylim([0 105]);
+set(gca, 'XTick', 1:3, 'XTickLabel', {'Phase A', 'Phase B', 'Phase C'});
+ylabel('Power Factor (%)', 'FontSize', 12, 'FontWeight', 'bold');
+title('AFTER Correction', 'FontSize', 13, 'FontWeight', 'bold', 'Color', 'g');
+hold off;
+
+saveas(gcf, 'ex3_pf_correction.png');
+
+fprintf('\nAll figures saved successfully!\n');
+fprintf('- ex3_phasor_unbalanced.png\n');
+fprintf('- ex3_power_per_phase.png\n');
+fprintf('- ex3_total_power.png\n');
+fprintf('- ex3_pf_correction.png\n');
