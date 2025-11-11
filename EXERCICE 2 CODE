@@ -1,0 +1,310 @@
+% ====================================================================
+% EXERCISE 2 - VARIANT B: THREE-PHASE DELTA CAPACITIVE LOAD
+% ====================================================================
+
+clear; clc; close all;
+
+%% GIVEN DATA
+UL = 230;           % Line voltage (V)
+f = 60;             % Frequency (Hz)
+R = 20;             % Resistance (Ω)
+C = 150e-6;         % Capacitance (F) = 150 μF
+
+%% CALCULATIONS
+% Step 1: Capacitive Reactance
+XC = 1/(2*pi*f*C);
+
+% Step 2: Phase Impedance (Delta)
+Zdelta_mag = sqrt(R^2 + XC^2);
+phi = -atan2(XC, R);  % Negative for capacitive (leading)
+
+% Step 3: Phase voltages (Delta: Uph = UL)
+Uph = UL;
+
+% Step 4: Phase currents in delta branches
+Iph_delta = Uph/Zdelta_mag;
+
+% Phase angles for voltages
+UAB_angle = 0;
+UBC_angle = -120;
+UCA_angle = 120;
+
+% Phase currents (lead voltage by |phi|)
+IAB_angle = UAB_angle - rad2deg(phi);  % Current leads for capacitive
+IBC_angle = UBC_angle - rad2deg(phi);
+ICA_angle = UCA_angle - rad2deg(phi);
+
+% Complex phasors for phase currents
+IAB = Iph_delta * exp(1j*deg2rad(IAB_angle));
+IBC = Iph_delta * exp(1j*deg2rad(IBC_angle));
+ICA = Iph_delta * exp(1j*deg2rad(ICA_angle));
+
+% Step 5: Line currents using KCL
+IA = IAB - ICA;
+IB = IBC - IAB;
+IC = ICA - IBC;
+
+IL_mag = abs(IA);
+
+% Step 6: Verify relationship IL = sqrt(3)*Iph
+ratio = IL_mag/Iph_delta;
+
+% Step 7: Power calculations
+cos_phi = cos(phi);
+sin_phi = sin(phi);
+
+Pph = Uph * Iph_delta * cos_phi;
+Qph = -Uph * Iph_delta * abs(sin_phi);  % Negative for capacitive
+Sph = Uph * Iph_delta;
+
+P3ph = 3 * Pph;
+Q3ph = 3 * Qph;
+S3ph = 3 * Sph;
+
+% Step 8: Equivalent star impedance
+Zstar = (R - 1j*XC)/3;
+Zstar_mag = abs(Zstar);
+Zstar_angle = angle(Zstar)*180/pi;
+
+%% PRINT RESULTS
+fprintf('\n========== EXERCISE 2 - VARIANT B RESULTS ==========\n');
+fprintf('CAPACITIVE LOAD (Delta Connection)\n');
+fprintf('XC = %.4f Ω\n', XC);
+fprintf('|Zδ| = %.4f Ω ∠ %.2f° (CAPACITIVE)\n', Zdelta_mag, rad2deg(phi));
+fprintf('Uph = UL = %.2f V (Delta connection)\n', Uph);
+fprintf('Iph (delta) = %.4f A\n', Iph_delta);
+fprintf('IL = %.4f A\n', IL_mag);
+fprintf('Verification: IL/Iph = %.4f (should be √3 = 1.732) ✓\n', ratio);
+fprintf('\nPOWER PER PHASE:\n');
+fprintf('Pph = %.2f W\n', Pph);
+fprintf('Qph = %.2f VAR (NEGATIVE = capacitive)\n', Qph);
+fprintf('Sph = %.2f VA\n', Sph);
+fprintf('\nTOTAL 3-PHASE POWER:\n');
+fprintf('P3φ = %.2f W = %.3f kW\n', P3ph, P3ph/1000);
+fprintf('Q3φ = %.2f VAR = %.3f kVAR (LEADING)\n', Q3ph, Q3ph/1000);
+fprintf('S3φ = %.2f VA = %.3f kVA\n', S3ph, S3ph/1000);
+fprintf('Power Factor = %.4f = %.2f%% (LEADING)\n', abs(cos_phi), abs(cos_phi)*100);
+fprintf('\nEQUIVALENT STAR IMPEDANCE:\n');
+fprintf('ZY = Zδ/3 = %.4f ∠ %.2f° Ω\n', Zstar_mag, Zstar_angle);
+fprintf('====================================================\n\n');
+
+%% FIGURE 1: PHASOR DIAGRAM - PHASE CURRENTS IN DELTA
+figure('Position', [100, 100, 1000, 800]);
+
+% Voltage phasors
+UAB = Uph * exp(1j*deg2rad(UAB_angle));
+UBC = Uph * exp(1j*deg2rad(UBC_angle));
+UCA = Uph * exp(1j*deg2rad(UCA_angle));
+
+hold on; grid on;
+
+% Plot voltage phasors (line voltages)
+quiver(0, 0, real(UAB), imag(UAB), 0, 'r', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(UBC), imag(UBC), 0, 'g', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(UCA), imag(UCA), 0, 'b', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+
+% Scale phase currents for visibility
+scale_ph = Uph/Iph_delta * 0.6;
+IAB_scaled = IAB * scale_ph;
+IBC_scaled = IBC * scale_ph;
+ICA_scaled = ICA * scale_ph;
+
+% Plot phase currents (in delta branches)
+quiver(0, 0, real(IAB_scaled), imag(IAB_scaled), 0, 'r--', 'LineWidth', 2.5, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(IBC_scaled), imag(IBC_scaled), 0, 'g--', 'LineWidth', 2.5, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(ICA_scaled), imag(ICA_scaled), 0, 'b--', 'LineWidth', 2.5, 'MaxHeadSize', 0.4);
+
+% Labels
+text(real(UAB)*1.15, imag(UAB)*1.15, sprintf('U_{AB} = %.0f V', Uph), 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'r');
+text(real(UBC)*1.15, imag(UBC)*1.15, sprintf('U_{BC} = %.0f V', Uph), 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'g');
+text(real(UCA)*1.15, imag(UCA)*1.15, sprintf('U_{CA} = %.0f V', Uph), 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'b');
+
+text(real(IAB_scaled)*1.15, imag(IAB_scaled)*1.15, sprintf('I_{AB} = %.2f A', Iph_delta), 'FontSize', 11, 'Color', [0.7 0 0]);
+text(real(IBC_scaled)*1.15, imag(IBC_scaled)*1.15, sprintf('I_{BC} = %.2f A', Iph_delta), 'FontSize', 11, 'Color', [0 0.5 0]);
+text(real(ICA_scaled)*1.15, imag(ICA_scaled)*1.15, sprintf('I_{CA} = %.2f A', Iph_delta), 'FontSize', 11, 'Color', [0 0 0.7]);
+
+% Highlight leading power factor
+text(0, -280, 'CAPACITIVE LOAD: Current LEADS Voltage', 'FontSize', 13, 'FontWeight', 'bold', ...
+    'BackgroundColor', [0.9 1 0.9], 'HorizontalAlignment', 'center', 'EdgeColor', 'g', 'LineWidth', 2);
+
+axis equal;
+xlim([-300 300]);
+ylim([-300 300]);
+xlabel('Real Axis', 'FontSize', 13, 'FontWeight', 'bold');
+ylabel('Imaginary Axis', 'FontSize', 13, 'FontWeight', 'bold');
+title({'Phase Phasor Diagram - Delta Connection', sprintf('Capacitive Load: R = %.0f Ω, X_C = %.2f Ω', R, XC)}, ...
+    'FontSize', 14, 'FontWeight', 'bold');
+legend('U_{AB}', 'U_{BC}', 'U_{CA}', 'I_{AB}', 'I_{BC}', 'I_{CA}', 'Location', 'best', 'FontSize', 10);
+hold off;
+
+% Save figure
+saveas(gcf, 'ex2_phasor_phase.png');
+
+%% FIGURE 2: PHASOR DIAGRAM - LINE CURRENTS WITH 30° SHIFT
+figure('Position', [150, 150, 1000, 800]);
+
+hold on; grid on;
+
+% Plot voltage phasors
+quiver(0, 0, real(UAB), imag(UAB), 0, 'r', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(UBC), imag(UBC), 0, 'g', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+quiver(0, 0, real(UCA), imag(UCA), 0, 'b', 'LineWidth', 3, 'MaxHeadSize', 0.4);
+
+% Scale line currents
+scale_line = Uph/IL_mag * 0.7;
+IA_scaled = IA * scale_line;
+IB_scaled = IB * scale_line;
+IC_scaled = IC * scale_line;
+
+% Plot line currents
+quiver(0, 0, real(IA_scaled), imag(IA_scaled), 0, 'r', 'LineWidth', 2.5, 'MaxHeadSize', 0.5, 'LineStyle', ':');
+quiver(0, 0, real(IB_scaled), imag(IB_scaled), 0, 'g', 'LineWidth', 2.5, 'MaxHeadSize', 0.5, 'LineStyle', ':');
+quiver(0, 0, real(IC_scaled), imag(IC_scaled), 0, 'b', 'LineWidth', 2.5, 'MaxHeadSize', 0.5, 'LineStyle', ':');
+
+% Labels
+text(real(UAB)*1.15, imag(UAB)*1.15, 'U_{AB}', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'r');
+text(real(UBC)*1.15, imag(UBC)*1.15, 'U_{BC}', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'g');
+text(real(UCA)*1.15, imag(UCA)*1.15, 'U_{CA}', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'b');
+
+text(real(IA_scaled)*1.15, imag(IA_scaled)*1.15, sprintf('I_A = %.2f A', IL_mag), 'FontSize', 11, 'FontWeight', 'bold', 'Color', 'r');
+text(real(IB_scaled)*1.15, imag(IB_scaled)*1.15, sprintf('I_B = %.2f A', IL_mag), 'FontSize', 11, 'FontWeight', 'bold', 'Color', 'g');
+text(real(IC_scaled)*1.15, imag(IC_scaled)*1.15, sprintf('I_C = %.2f A', IL_mag), 'FontSize', 11, 'FontWeight', 'bold', 'Color', 'b');
+
+% Show 30° phase shift
+angle_IA = angle(IA)*180/pi;
+angle_IAB = angle(IAB)*180/pi;
+phase_diff = angle_IA - angle_IAB;
+text(0, -280, sprintf('30° Phase Shift: Line currents lead phase currents by %.1f°', phase_diff), ...
+    'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [1 1 0.8], ...
+    'HorizontalAlignment', 'center', 'EdgeColor', 'k', 'LineWidth', 1.5);
+
+axis equal;
+xlim([-300 300]);
+ylim([-300 300]);
+xlabel('Real Axis', 'FontSize', 13, 'FontWeight', 'bold');
+ylabel('Imaginary Axis', 'FontSize', 13, 'FontWeight', 'bold');
+title({'Line Current Phasor Diagram', sprintf('I_L = %.2f A = √3 × I_{ph} (%.2f A)', IL_mag, Iph_delta)}, ...
+    'FontSize', 14, 'FontWeight', 'bold');
+legend('U_{AB}', 'U_{BC}', 'U_{CA}', 'I_A (line)', 'I_B (line)', 'I_C (line)', 'Location', 'best');
+hold off;
+
+% Save figure
+saveas(gcf, 'ex2_phasor_line.png');
+
+%% FIGURE 3: POWER TRIANGLE (CAPACITIVE - NEGATIVE Q)
+figure('Position', [200, 200, 900, 700]);
+hold on; grid on;
+
+% For capacitive load, Q is negative (leading)
+plot([0 P3ph], [0 0], 'b', 'LineWidth', 3);
+plot([P3ph P3ph], [0 Q3ph], 'r', 'LineWidth', 3);
+plot([0 P3ph], [0 Q3ph], 'g', 'LineWidth', 3);
+fill([0 P3ph P3ph 0], [0 0 Q3ph 0], [0.9 1 0.95], 'FaceAlpha', 0.3);
+
+% Labels
+text(P3ph/2, 100, sprintf('P = %.2f kW', P3ph/1000), 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'b', 'HorizontalAlignment', 'center');
+text(P3ph+200, Q3ph/2, sprintf('Q = %.2f kVAR (LEADING)', Q3ph/1000), 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'r');
+text(P3ph/2-200, Q3ph/2-100, sprintf('S = %.2f kVA', S3ph/1000), 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'g');
+
+% Angle annotation
+angle_arc = linspace(0, phi, 50);
+arc_r = P3ph * 0.15;
+plot(arc_r*cos(angle_arc), arc_r*sin(angle_arc), 'k', 'LineWidth', 2);
+text(arc_r*1.5, arc_r*0.5, sprintf('φ = %.2f° (LEADING)', abs(rad2deg(phi))), 'FontSize', 11, 'FontWeight', 'bold');
+
+% Info box
+text(P3ph*0.5, Q3ph-800, sprintf('Power Factor = %.2f%% LEADING\\nCapacitive Load supplies reactive power to grid', abs(cos_phi)*100), ...
+    'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.9 1 0.9], ...
+    'HorizontalAlignment', 'center', 'EdgeColor', 'g', 'LineWidth', 2);
+
+axis equal;
+xlim([-P3ph*0.2 P3ph*1.3]);
+ylim([Q3ph*1.3 P3ph*0.3]);
+xlabel('Active Power P (W)', 'FontSize', 13, 'FontWeight', 'bold');
+ylabel('Reactive Power Q (VAR)', 'FontSize', 13, 'FontWeight', 'bold');
+title({'Power Triangle - Capacitive Load (Delta)', 'Note: Q is NEGATIVE (supplies reactive power)'}, ...
+    'FontSize', 14, 'FontWeight', 'bold');
+legend('P (Active)', 'Q (Capacitive)', 'S (Apparent)', 'Location', 'southeast');
+hold off;
+
+% Save figure
+saveas(gcf, 'ex2_power_triangle.png');
+
+%% FIGURE 4: DELTA-STAR EQUIVALENCE
+figure('Position', [250, 250, 1200, 600]);
+
+% Delta configuration (left)
+subplot(1,2,1);
+hold on; axis off; axis equal;
+
+% Draw delta
+vertices = [0 0; 3 0; 1.5 2.598];
+for i = 1:3
+    j = mod(i, 3) + 1;
+    plot([vertices(i,1) vertices(j,1)], [vertices(i,2) vertices(j,2)], 'k', 'LineWidth', 2);
+    
+    % Draw impedance in middle
+    mid_x = (vertices(i,1) + vertices(j,1))/2;
+    mid_y = (vertices(i,2) + vertices(j,2))/2;
+    rectangle('Position', [mid_x-0.2 mid_y-0.15 0.4 0.3], 'EdgeColor', 'b', 'LineWidth', 2);
+end
+
+% Labels
+text(vertices(1,1), vertices(1,2)-0.4, 'A', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+text(vertices(2,1), vertices(2,2)-0.4, 'B', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+text(vertices(3,1), vertices(3,2)+0.4, 'C', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+
+text(1.5, -1.2, sprintf('Z_{Δ} = %.2f - j%.2f Ω', R, XC), 'FontSize', 12, 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+text(1.5, -1.7, sprintf('|Z_{Δ}| = %.2f Ω', Zdelta_mag), 'FontSize', 11, 'HorizontalAlignment', 'center');
+text(1.5, -2.2, sprintf('I_{ph} = %.2f A', Iph_delta), 'FontSize', 11, 'Color', 'r', 'HorizontalAlignment', 'center');
+text(1.5, -2.7, sprintf('I_L = %.2f A', IL_mag), 'FontSize', 11, 'Color', 'b', 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+
+title('DELTA Configuration', 'FontSize', 14, 'FontWeight', 'bold');
+xlim([-1 4]);
+ylim([-3 3.5]);
+hold off;
+
+% Star configuration (right)
+subplot(1,2,2);
+hold on; axis off; axis equal;
+
+% Draw star
+center = [1.5 1.3];
+endpoints = [1.5 -0.5; 0 2.3; 3 2.3];
+
+for i = 1:3
+    plot([center(1) endpoints(i,1)], [center(2) endpoints(i,2)], 'k', 'LineWidth', 2);
+    
+    % Draw impedance
+    mid_x = (center(1) + endpoints(i,1))/2;
+    mid_y = (center(2) + endpoints(i,2))/2;
+    rectangle('Position', [mid_x-0.2 mid_y-0.15 0.4 0.3], 'EdgeColor', 'g', 'LineWidth', 2);
+end
+
+% Neutral point
+plot(center(1), center(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+text(center(1)+0.3, center(2), 'N', 'FontSize', 12, 'FontWeight', 'bold');
+
+% Labels
+text(endpoints(1,1), endpoints(1,2)-0.4, 'A', 'FontSize', 14, 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+text(endpoints(2,1)-0.3, endpoints(2,2), 'B', 'FontSize', 14, 'FontWeight', 'bold');
+text(endpoints(3,1)+0.3, endpoints(3,2), 'C', 'FontSize', 14, 'FontWeight', 'bold');
+
+text(1.5, -1.2, sprintf('Z_Y = Z_{Δ}/3 = %.2f - j%.2f Ω', real(Zstar), abs(imag(Zstar))), ...
+    'FontSize', 12, 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+text(1.5, -1.7, sprintf('|Z_Y| = %.2f Ω', Zstar_mag), 'FontSize', 11, 'HorizontalAlignment', 'center');
+text(1.5, -2.2, 'Same Power Consumption!', 'FontSize', 11, 'Color', [0 0.6 0], 'FontWeight', 'bold', 'HorizontalAlignment', 'center');
+
+title('Equivalent STAR Configuration', 'FontSize', 14, 'FontWeight', 'bold');
+xlim([-1 4]);
+ylim([-3 3.5]);
+hold off;
+
+% Save figure
+saveas(gcf, 'ex2_delta_star.png');
+
+fprintf('\nAll figures saved successfully!\n');
+fprintf('- ex2_phasor_phase.png\n');
+fprintf('- ex2_phasor_line.png\n');
+fprintf('- ex2_power_triangle.png\n');
+fprintf('- ex2_delta_star.png\n');
