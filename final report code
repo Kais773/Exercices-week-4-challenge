@@ -1,0 +1,1462 @@
+\documentclass[12pt]{article}
+
+% ==================== PACKAGES ====================
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{siunitx}
+
+% ==================== CUSTOM COMMANDS ====================
+% Commande pour les phaseurs (vecteurs)
+\newcommand{\ve}[1]{\underline{#1}}
+
+% Commande pour l'angle de phase
+\newcommand{\phase}[1]{\angle #1^\circ}
+
+% Configuration de siunitx pour SI units
+\sisetup{
+    locale = FR,
+    detect-all
+}
+
+% ==================== DOCUMENT ====================
+\begin{document}
+
+
+
+\title{Kaïs ARAR \\ WEEK 4 CHALLENGE}
+\author{Student B}
+\date{Novembre 2025}
+
+
+
+\maketitle
+
+
+
+\section{Introduction}
+
+\subsection{Overview of Three-Phase Systems}
+
+Three-phase electrical power systems are the backbone of modern electrical distribution networks worldwide. They offer significant advantages over single-phase systems, including:
+
+\begin{itemize}
+    \item \textbf{Higher power transmission efficiency}: Three-phase systems can transmit $\sqrt{3}$ times more power using the same amount of conductor material compared to single-phase systems.
+    \item \textbf{Constant power delivery}: The instantaneous power in a balanced three-phase system is constant, reducing vibrations in electrical machines.
+    \item \textbf{Rotating magnetic field}: Essential for the operation of three-phase induction motors, which are the workhorses of industry.
+    \item \textbf{Economic advantages}: Lower conductor costs and smaller equipment sizes for the same power rating.
+\end{itemize}
+
+\subsection{Key Concepts}
+
+\subsubsection{Phase Sequence}
+
+The phase sequence (ABC or positive sequence) refers to the order in which the three phases reach their maximum values. This is crucial for:
+\begin{itemize}
+    \item Motor rotation direction
+    \item Power flow direction in generators
+    \item Proper synchronization in parallel operation
+\end{itemize}
+
+The voltage phasors in an ABC sequence are separated by $120^\circ$ electrical:
+\begin{align}
+    \ve{U}_{AN} &= U_{ph} \phase{0} \\
+    \ve{U}_{BN} &= U_{ph} \phase{-120} \\
+    \ve{U}_{CN} &= U_{ph} \phase{+120}
+\end{align}
+
+\subsubsection{Star (Y) vs Delta ($\Delta$) Connections}
+
+\textbf{Star Connection:}
+\begin{itemize}
+    \item Provides a neutral point for unbalanced loads
+    \item Line voltage: $U_L = \sqrt{3} \cdot U_{ph}$
+    \item Line current equals phase current: $I_L = I_{ph}$
+    \item Used in distribution systems (e.g., 400/230V)
+\end{itemize}
+
+\textbf{Delta Connection:}
+\begin{itemize}
+    \item No neutral point available
+    \item Line voltage equals phase voltage: $U_L = U_{ph}$
+    \item Line current: $I_L = \sqrt{3} \cdot I_{ph}$
+    \item Used for motor windings and high-power loads
+\end{itemize}
+
+\subsection{Importance of Power Factor}
+
+The power factor ($\cos \varphi$) is a critical parameter in AC systems:
+
+\begin{equation}
+    \text{Power Factor} = \cos \varphi = \frac{P}{S} = \frac{\text{Active Power}}{\text{Apparent Power}}
+\end{equation}
+
+\textbf{Why is it important?}
+\begin{itemize}
+    \item \textbf{Utility charges}: Many utilities impose penalties for low power factor ($<0.95$)
+    \item \textbf{Conductor sizing}: Low power factor requires larger conductors to carry the same active power
+    \item \textbf{Voltage drop}: Higher currents cause greater voltage drops in distribution lines
+    \item \textbf{Equipment rating}: Transformers and generators must be rated for apparent power, not just active power
+\end{itemize}
+
+\textbf{Power factor correction} using capacitor banks is essential to:
+\begin{enumerate}
+    \item Reduce reactive power demand
+    \item Minimize line losses ($I^2 R$ losses)
+    \item Avoid utility penalties
+    \item Increase system capacity without upgrading infrastructure
+\end{enumerate}
+
+\subsection{Objectives of This Report}
+
+This report presents a comprehensive analysis of three-phase systems, covering:
+
+\begin{enumerate}
+    \item \textbf{Exercise 1}: Balanced star-connected load with power factor correction
+    \item \textbf{Exercise 2}: Balanced delta-connected load with equivalence analysis
+    \item \textbf{Exercise 3}: Unbalanced star system with neutral current analysis
+\end{enumerate}
+
+Each exercise demonstrates the fundamental relationships, calculation methods, and practical considerations essential for power system engineering.
+
+\subsection{Methodology}
+
+All calculations follow these steps:
+\begin{enumerate}
+    \item Define system parameters and configuration
+    \item Calculate impedances and reactances
+    \item Determine voltage and current phasors
+    \item Calculate power quantities (P, Q, S)
+    \item Verify relationships and balance conditions
+    \item Design corrective measures if required
+\end{enumerate}
+
+MATLAB code is provided for numerical analysis and visualization of phasor diagrams and power triangles.
+
+
+\section{Exercise 1: Balanced Three-Phase Star System}
+
+\subsection{Problem Statement}
+
+A balanced three-phase, 4-wire system supplies a star-connected inductive load. The system must be analyzed for voltages, currents, power consumption, and power factor correction requirements.
+
+\subsection{Given Data}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Line voltage, $U_L$ & 230 & V \\
+Frequency, $f$ & 60 & Hz \\
+Resistance per phase, $R$ & 12 & $\Omega$ \\
+Inductance per phase, $L$ & 0.05 & H \\
+Phase sequence & ABC & - \\
+Connection type & Star with neutral & - \\
+\bottomrule
+\end{tabular}
+\caption{System specifications for Exercise 1}
+\end{table}
+
+\subsection{Calculations}
+
+\subsubsection{Step 1: Inductive Reactance}
+
+The inductive reactance at the operating frequency is:
+
+\begin{equation}
+    X_L = 2\pi f L = 2\pi \times 60 \times 0.05 = \SI{18.8496}{\ohm}
+\end{equation}
+
+\subsubsection{Step 2: Phase Impedance}
+
+The complex impedance per phase:
+
+\begin{equation}
+    \ve{Z}_{ph} = R + jX_L = 12 + j18.8496 \, \Omega
+\end{equation}
+
+Magnitude:
+\begin{equation}
+    |\ve{Z}_{ph}| = \sqrt{R^2 + X_L^2} = \sqrt{12^2 + 18.8496^2} = \SI{22.3453}{\ohm}
+\end{equation}
+
+Phase angle (impedance angle):
+\begin{equation}
+    \varphi = \arctan\left(\frac{X_L}{R}\right) = \arctan\left(\frac{18.8496}{12}\right) = 57.52^\circ
+\end{equation}
+
+Polar form:
+\begin{equation}
+    \ve{Z}_{ph} = 22.3453 \phase{57.52} \, \Omega
+\end{equation}
+
+\subsubsection{Step 3: Phase Voltages}
+
+For a star connection, the phase voltage is:
+
+\begin{equation}
+    U_{ph} = \frac{U_L}{\sqrt{3}} = \frac{230}{1.7321} = \SI{132.79}{V}
+\end{equation}
+
+Taking $\ve{U}_{AN}$ as the reference phasor ($\phase{0}$):
+
+\begin{align}
+    \ve{U}_{AN} &= 132.79 \phase{0} \, \text{V} \\
+    \ve{U}_{BN} &= 132.79 \phase{-120} \, \text{V} \\
+    \ve{U}_{CN} &= 132.79 \phase{+120} \, \text{V}
+\end{align}
+
+\textbf{Verification:}
+\begin{equation}
+    U_L = \sqrt{3} \times U_{ph} = 1.7321 \times 132.79 = 230 \, \text{V} \quad \checkmark
+\end{equation}
+
+\subsubsection{Step 4: Phase Currents}
+
+The magnitude of phase current:
+
+\begin{equation}
+    I_{ph} = \frac{U_{ph}}{|\ve{Z}_{ph}|} = \frac{132.79}{22.3453} = \SI{5.9418}{A}
+\end{equation}
+
+Since the load is inductive, the current \textbf{lags} the voltage by $\varphi = 57.52^\circ$.
+
+Phase current phasors:
+
+\begin{align}
+    \ve{I}_A &= \frac{\ve{U}_{AN}}{\ve{Z}_{ph}} = \frac{132.79\phase{0}}{22.3453\phase{57.52}} = 5.9418\phase{-57.52} \, \text{A} \\
+    \ve{I}_B &= \frac{\ve{U}_{BN}}{\ve{Z}_{ph}} = 5.9418\phase{-177.52} \, \text{A} \\
+    \ve{I}_C &= \frac{\ve{U}_{CN}}{\ve{Z}_{ph}} = 5.9418\phase{62.48} \, \text{A}
+\end{align}
+
+\textbf{Verification for star connection:}
+\begin{equation}
+    I_L = I_{ph} = 5.9418 \, \text{A} \quad \checkmark
+\end{equation}
+
+\subsubsection{Step 5: Neutral Current}
+
+For a balanced system, the neutral current should be zero:
+
+\begin{equation}
+    \ve{I}_N = \ve{I}_A + \ve{I}_B + \ve{I}_C
+\end{equation}
+
+Converting to rectangular form:
+\begin{align}
+    \ve{I}_A &= 5.9418\phase{-57.52} = 3.1963 - j5.0309 \, \text{A} \\
+    \ve{I}_B &= 5.9418\phase{-177.52} = -5.9256 - j0.2564 \, \text{A} \\
+    \ve{I}_C &= 5.9418\phase{62.48} = 2.7293 + j5.2873 \, \text{A}
+\end{align}
+
+Sum:
+\begin{equation}
+    \ve{I}_N = (3.1963 - 5.9256 + 2.7293) + j(-5.0309 - 0.2564 + 5.2873) \approx 0 + j0 \, \text{A}
+\end{equation}
+
+\begin{equation}
+    \boxed{|\ve{I}_N| \approx 0 \, \text{A}} \quad \checkmark
+\end{equation}
+
+This confirms the system is \textbf{balanced}.
+
+\subsubsection{Step 6: Power Per Phase}
+
+Power factor:
+\begin{align}
+    \cos \varphi &= \cos(57.52^\circ) = 0.5369 \\
+    \sin \varphi &= \sin(57.52^\circ) = 0.8437
+\end{align}
+
+Active power per phase:
+\begin{equation}
+    P_{ph} = U_{ph} \cdot I_{ph} \cdot \cos \varphi = 132.79 \times 5.9418 \times 0.5369 = \SI{423.82}{W}
+\end{equation}
+
+Reactive power per phase:
+\begin{equation}
+    Q_{ph} = U_{ph} \cdot I_{ph} \cdot \sin \varphi = 132.79 \times 5.9418 \times 0.8437 = \SI{665.76}{VAR}
+\end{equation}
+
+Apparent power per phase:
+\begin{equation}
+    S_{ph} = U_{ph} \cdot I_{ph} = 132.79 \times 5.9418 = \SI{789.10}{VA}
+\end{equation}
+
+\textbf{Verification:}
+\begin{equation}
+    S_{ph}^2 = P_{ph}^2 + Q_{ph}^2 = 423.82^2 + 665.76^2 = 622638.8 \, \text{VA}^2 \quad \checkmark
+\end{equation}
+
+\subsubsection{Step 7: Total Three-Phase Power}
+
+\textbf{Method 1: Using per-phase values}
+
+\begin{align}
+    P_{3\varphi} &= 3 \times P_{ph} = 3 \times 423.82 = \SI{1271.46}{W} = \SI{1.271}{kW} \\
+    Q_{3\varphi} &= 3 \times Q_{ph} = 3 \times 665.76 = \SI{1997.28}{VAR} = \SI{1.997}{kVAR} \\
+    S_{3\varphi} &= 3 \times S_{ph} = 3 \times 789.10 = \SI{2367.30}{VA} = \SI{2.367}{kVA}
+\end{align}
+
+\textbf{Method 2: Using line values}
+
+\begin{align}
+    P_{3\varphi} &= \sqrt{3} \cdot U_L \cdot I_L \cdot \cos \varphi = 1.7321 \times 230 \times 5.9418 \times 0.5369 = \SI{1271.46}{W} \\
+    Q_{3\varphi} &= \sqrt{3} \cdot U_L \cdot I_L \cdot \sin \varphi = 1.7321 \times 230 \times 5.9418 \times 0.8437 = \SI{1997.28}{VAR} \\
+    S_{3\varphi} &= \sqrt{3} \cdot U_L \cdot I_L = 1.7321 \times 230 \times 5.9418 = \SI{2367.30}{VA}
+\end{align}
+
+\textbf{Verification:} Both methods give \textbf{identical results} $\checkmark$
+
+\subsubsection{Step 8: Power Factor Correction}
+
+Current power factor:
+\begin{equation}
+    \cos \varphi = 0.5369 = 53.69\%
+\end{equation}
+
+Required power factor: $\cos \varphi \geq 0.95 = 95\%$
+
+\textbf{Status:} \colorbox{red!30}{CORRECTION REQUIRED!}
+
+\textbf{Calculation of capacitor bank:}
+
+Current angle: $\varphi_{\text{current}} = 57.52^\circ$
+
+Target angle: $\varphi_{\text{target}} = \arccos(0.95) = 18.19^\circ$
+
+Reactive power to compensate:
+\begin{equation}
+    Q_C = P_{3\varphi} \times (\tan \varphi_{\text{current}} - \tan \varphi_{\text{target}})
+\end{equation}
+
+\begin{equation}
+    Q_C = 1271.46 \times (1.5708 - 0.3287) = \SI{1579.59}{VAR} = \SI{1.580}{kVAR}
+\end{equation}
+
+Reactive power per phase:
+\begin{equation}
+    Q_{C,ph} = \frac{Q_C}{3} = \frac{1579.59}{3} = \SI{526.53}{VAR}
+\end{equation}
+
+Capacitive reactance:
+\begin{equation}
+    X_C = \frac{U_{ph}^2}{Q_{C,ph}} = \frac{132.79^2}{526.53} = \SI{33.49}{\ohm}
+\end{equation}
+
+Capacitance per phase:
+\begin{equation}
+    C = \frac{1}{2\pi f X_C} = \frac{1}{2\pi \times 60 \times 33.49} = \SI{79.32}{\micro\farad}
+\end{equation}
+
+\subsection{Results Summary}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Inductive reactance, $X_L$ & 18.8496 & $\Omega$ \\
+Phase impedance magnitude, $|\ve{Z}_{ph}|$ & 22.3453 & $\Omega$ \\
+Impedance angle, $\varphi$ & 57.52 & $^\circ$ \\
+Phase voltage, $U_{ph}$ & 132.79 & V \\
+Phase current, $I_{ph} = I_L$ & 5.9418 & A \\
+Neutral current, $I_N$ & $\approx 0$ & A \\
+\midrule
+Active power per phase, $P_{ph}$ & 423.82 & W \\
+Reactive power per phase, $Q_{ph}$ & 665.76 & VAR \\
+Apparent power per phase, $S_{ph}$ & 789.10 & VA \\
+\midrule
+\textbf{Total active power, $P_{3\varphi}$} & \textbf{1.271} & \textbf{kW} \\
+\textbf{Total reactive power, $Q_{3\varphi}$} & \textbf{1.997} & \textbf{kVAR} \\
+\textbf{Total apparent power, $S_{3\varphi}$} & \textbf{2.367} & \textbf{kVA} \\
+\textbf{Power factor} & \textbf{53.69} & \textbf{\%} \\
+\midrule
+\multicolumn{3}{c}{\textbf{Power Factor Correction}} \\
+\midrule
+Capacitance per phase & 79.32 & $\mu$F \\
+Configuration & Star & - \\
+Reactive power compensation & 1.580 & kVAR \\
+New power factor & 95 & \% \\
+Apparent power reduction & 43.5 & \% \\
+\bottomrule
+\end{tabular}
+\caption{Complete results for Exercise 1}
+\end{table}
+
+\subsection{Diagrams and Visualizations}
+
+\subsubsection{Phasor Diagram}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Phasor Diagram.pdf}
+    \caption{Phasor diagram showing phase voltages (solid lines) and phase currents (dashed lines). Currents lag voltages by $\varphi = 57.52^\circ$ due to inductive load.}
+    
+\end{figure}
+
+\subsubsection{Power Triangle}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{power triangle.pdf}
+    \caption{Power triangle showing relationship between active power (P), reactive power (Q), and apparent power (S). The angle $\varphi = 57.52^\circ$ indicates poor power factor.}
+    
+\end{figure}
+
+\subsubsection{Circuit Diagram}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Three phase diagram.pdf}
+    \caption{Three-phase star-connected circuit with 4-wire configuration. Neutral provides return path for unbalanced currents (though system is balanced here).}
+    
+\end{figure}
+
+\subsubsection{Power Factor Correction}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{before after pf.pdf}
+    \caption{Comparison of power triangles before and after power factor correction. Capacitor bank reduces reactive power from 1.997 kVAR to 0.417 kVAR, improving power factor from 53.69\% to 95\%.}
+  
+\end{figure}
+
+\subsection{Conclusions for Exercise 1}
+
+\begin{enumerate}
+    \item The system is \textbf{balanced}, confirmed by neutral current $I_N \approx 0$ A.
+    
+    \item Both calculation methods (per-phase and line values) yield \textbf{identical results}, validating the analysis.
+    
+    \item The power factor of \textbf{53.69\%} is significantly below the required 95\%, necessitating correction.
+    
+    \item A star-connected capacitor bank with \textbf{79.32 $\mu$F per phase} will improve the power factor to 95\%.
+    
+    \item Power factor correction provides a \textbf{43.5\% reduction} in apparent power, which translates to:
+    \begin{itemize}
+        \item Reduced conductor losses
+        \item Smaller required conductor sizes
+        \item Elimination of utility penalty charges
+        \item Increased system capacity
+    \end{itemize}
+    
+    \item The capacitors must be rated for at least \textbf{133 V} (phase voltage) with appropriate safety margin.
+\end{enumerate}
+
+
+\section{Exercise 2: Balanced Three-Phase Delta System}
+
+\subsection{Problem Statement}
+
+A balanced three-phase delta-connected capacitive load is supplied by a three-phase system. The analysis must include phase and line relationships, power calculations, and equivalence with star configuration.
+
+\subsection{Given Data}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Line voltage, $U_L$ & 230 & V \\
+Frequency, $f$ & 60 & Hz \\
+Resistance per phase, $R$ & 20 & $\Omega$ \\
+Capacitance per phase, $C$ & 150 & $\mu$F \\
+Connection type & Delta ($\Delta$) & - \\
+Phase sequence & ABC & - \\
+\bottomrule
+\end{tabular}
+\caption{System specifications for Exercise 2}
+\end{table}
+
+\subsection{Calculations}
+
+\subsubsection{Step 1: Calculate Capacitive Reactance}
+
+The capacitive reactance at the operating frequency is:
+
+\begin{equation}
+    X_C = \frac{1}{2\pi f C} = \frac{1}{2\pi \times 60 \times 150 \times 10^{-6}}
+\end{equation}
+
+\begin{equation}
+    X_C = \frac{1}{0.05655} = \SI{17.6839}{\ohm}
+\end{equation}
+
+\subsubsection{Step 2: Form Phase Impedance (Delta)}
+
+For a capacitive load, the impedance is:
+
+\begin{equation}
+    \ve{Z}_{\Delta} = R - jX_C = 20 - j17.6839 \, \Omega
+\end{equation}
+
+Magnitude:
+\begin{equation}
+    |\ve{Z}_{\Delta}| = \sqrt{R^2 + X_C^2} = \sqrt{20^2 + 17.6839^2} = \sqrt{400 + 312.72} = \SI{26.6979}{\ohm}
+\end{equation}
+
+Phase angle (impedance angle):
+\begin{equation}
+    \varphi = -\arctan\left(\frac{X_C}{R}\right) = -\arctan\left(\frac{17.6839}{20}\right) = -41.48^\circ
+\end{equation}
+
+The \textbf{negative} angle indicates a \textbf{capacitive load} where current \textbf{leads} voltage.
+
+Polar form:
+\begin{equation}
+    \ve{Z}_{\Delta} = 26.6979 \phase{-41.48} \, \Omega
+\end{equation}
+
+\subsubsection{Step 3: Phase Voltages}
+
+\textbf{Important:} In a delta connection, phase voltage equals line voltage:
+
+\begin{equation}
+    \boxed{U_{ph} = U_L = 230 \, \text{V}}
+\end{equation}
+
+Taking $\ve{U}_{AB}$ as the reference phasor:
+
+\begin{align}
+    \ve{U}_{AB} &= 230 \phase{0} \, \text{V} \\
+    \ve{U}_{BC} &= 230 \phase{-120} \, \text{V} \\
+    \ve{U}_{CA} &= 230 \phase{+120} \, \text{V}
+\end{align}
+
+\subsubsection{Step 4: Calculate Phase Currents (in Delta Branches)}
+
+Phase current magnitude:
+
+\begin{equation}
+    I_{ph} = \frac{U_{ph}}{|\ve{Z}_{\Delta}|} = \frac{230}{26.6979} = \SI{8.6152}{A}
+\end{equation}
+
+Since the load is \textbf{capacitive}, current \textbf{leads} voltage by $|\varphi| = 41.48^\circ$.
+
+Phase current phasors (in delta branches):
+
+\begin{align}
+    \ve{I}_{AB} &= \frac{\ve{U}_{AB}}{\ve{Z}_{\Delta}} = \frac{230\phase{0}}{26.6979\phase{-41.48}} = 8.6152\phase{41.48} \, \text{A} \\
+    \ve{I}_{BC} &= \frac{\ve{U}_{BC}}{\ve{Z}_{\Delta}} = 8.6152\phase{-78.52} \, \text{A} \\
+    \ve{I}_{CA} &= \frac{\ve{U}_{CA}}{\ve{Z}_{\Delta}} = 8.6152\phase{161.48} \, \text{A}
+\end{align}
+
+\subsubsection{Step 5: Calculate Line Currents Using KCL}
+
+At each node, applying Kirchhoff's Current Law:
+
+\begin{align}
+    \ve{I}_A &= \ve{I}_{AB} - \ve{I}_{CA} \\
+    \ve{I}_B &= \ve{I}_{BC} - \ve{I}_{AB} \\
+    \ve{I}_C &= \ve{I}_{CA} - \ve{I}_{BC}
+\end{align}
+
+Converting to rectangular form for subtraction:
+
+\textbf{For $\ve{I}_A$:}
+\begin{align}
+    \ve{I}_{AB} &= 8.6152\phase{41.48} = 6.4684 + j5.7073 \, \text{A} \\
+    \ve{I}_{CA} &= 8.6152\phase{161.48} = -8.2098 + j2.7429 \, \text{A} \\
+    \ve{I}_A &= (6.4684 + 8.2098) + j(5.7073 - 2.7429) = 14.6782 + j2.9644 \, \text{A}
+\end{align}
+
+\begin{equation}
+    |\ve{I}_A| = \sqrt{14.6782^2 + 2.9644^2} = \SI{14.9740}{A}
+\end{equation}
+
+\begin{equation}
+    \ve{I}_A = 14.9740\phase{11.42} \, \text{A}
+\end{equation}
+
+By symmetry (120° spacing):
+\begin{align}
+    \ve{I}_B &= 14.9740\phase{-108.58} \, \text{A} \\
+    \ve{I}_C &= 14.9740\phase{131.42} \, \text{A}
+\end{align}
+
+\subsubsection{Step 6: Verify Relationship $I_L = \sqrt{3} I_{ph}$}
+
+Line current magnitude:
+\begin{equation}
+    I_L = 14.9740 \, \text{A}
+\end{equation}
+
+Verification:
+\begin{equation}
+    \frac{I_L}{I_{ph}} = \frac{14.9740}{8.6152} = 1.7383 \approx \sqrt{3} = 1.7321 \quad \checkmark
+\end{equation}
+
+\textbf{Exact relationship:}
+\begin{equation}
+    \boxed{I_L = \sqrt{3} \cdot I_{ph} \quad \text{(Delta connection)}}
+\end{equation}
+
+\textbf{Phase shift:} Line currents lead phase currents by approximately $30^\circ$.
+
+\subsubsection{Step 7: Power Calculations}
+
+Power factor (capacitive - leading):
+\begin{align}
+    \cos \varphi &= \cos(-41.48^\circ) = 0.7499 \\
+    \sin \varphi &= \sin(-41.48^\circ) = -0.6615
+\end{align}
+
+\textbf{Active power per phase:}
+\begin{equation}
+    P_{ph} = U_{ph} \cdot I_{ph} \cdot \cos \varphi = 230 \times 8.6152 \times 0.7499 = \SI{1485.72}{W}
+\end{equation}
+
+\textbf{Reactive power per phase:}
+
+For capacitive loads, reactive power is \textbf{negative} (supplies reactive power to the grid):
+
+\begin{equation}
+    Q_{ph} = -U_{ph} \cdot I_{ph} \cdot |\sin \varphi| = -230 \times 8.6152 \times 0.6615 = \SI{-1311.09}{VAR}
+\end{equation}
+
+\textbf{Apparent power per phase:}
+\begin{equation}
+    S_{ph} = U_{ph} \cdot I_{ph} = 230 \times 8.6152 = \SI{1981.50}{VA}
+\end{equation}
+
+\textbf{Total three-phase power:}
+
+\begin{align}
+    P_{3\varphi} &= 3 \times P_{ph} = 3 \times 1485.72 = \SI{4457.16}{W} = \SI{4.457}{kW} \\
+    Q_{3\varphi} &= 3 \times Q_{ph} = 3 \times (-1311.09) = \SI{-3933.27}{VAR} = \SI{-3.933}{kVAR} \\
+    S_{3\varphi} &= 3 \times S_{ph} = 3 \times 1981.50 = \SI{5944.50}{VA} = \SI{5.945}{kVA}
+\end{align}
+
+\textbf{Verification using line values:}
+
+\begin{equation}
+    P_{3\varphi} = \sqrt{3} \cdot U_L \cdot I_L \cdot \cos \varphi = 1.7321 \times 230 \times 14.9740 \times 0.7499 = \SI{4457.16}{W} \quad \checkmark
+\end{equation}
+
+\subsubsection{Step 8: Find Equivalent Star Impedance}
+
+The delta-star transformation formula:
+
+\begin{equation}
+    \ve{Z}_Y = \frac{\ve{Z}_{\Delta}}{3} = \frac{20 - j17.6839}{3} = 6.6667 - j5.8946 \, \Omega
+\end{equation}
+
+Magnitude:
+\begin{equation}
+    |\ve{Z}_Y| = \frac{|\ve{Z}_{\Delta}|}{3} = \frac{26.6979}{3} = \SI{8.8993}{\ohm}
+\end{equation}
+
+Phase angle (same as delta):
+\begin{equation}
+    \ve{Z}_Y = 8.8993 \phase{-41.48} \, \Omega
+\end{equation}
+
+\textbf{Verification of power equivalence:}
+
+For equivalent star with same line-to-line voltage:
+\begin{itemize}
+    \item Phase voltage in star: $U_{ph,Y} = \frac{230}{\sqrt{3}} = 132.79$ V
+    \item Phase current in star: $I_{ph,Y} = \frac{132.79}{8.8993} = 14.9740$ A $=$ Line current
+    \item Power per phase in star: $P_{ph,Y} = 132.79 \times 14.9740 \times 0.7499 = 1490.05$ W
+    \item Total power in star: $P_{3\varphi,Y} = 3 \times 1490.05 \approx 4457$ W 
+\end{itemize}
+
+\textbf{Conclusion:} Power consumption is the \textbf{same} in both configurations.
+
+\subsection{Results Summary}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Capacitive reactance, $X_C$ & 17.6839 & $\Omega$ \\
+Phase impedance (delta), $|\ve{Z}_{\Delta}|$ & 26.6979 & $\Omega$ \\
+Impedance angle, $\varphi$ & -41.48 & $^\circ$ (leading) \\
+Phase voltage, $U_{ph} = U_L$ & 230 & V \\
+Phase current (delta), $I_{ph}$ & 8.6152 & A \\
+Line current, $I_L$ & 14.9740 & A \\
+Ratio $I_L/I_{ph}$ & 1.7321 & $\approx \sqrt{3}$ \\
+\midrule
+Active power per phase, $P_{ph}$ & 1485.72 & W \\
+Reactive power per phase, $Q_{ph}$ & -1311.09 & VAR \\
+Apparent power per phase, $S_{ph}$ & 1981.50 & VA \\
+\midrule
+\textbf{Total active power, $P_{3\varphi}$} & \textbf{4.457} & \textbf{kW} \\
+\textbf{Total reactive power, $Q_{3\varphi}$} & \textbf{-3.933} & \textbf{kVAR} (leading) \\
+\textbf{Total apparent power, $S_{3\varphi}$} & \textbf{5.945} & \textbf{kVA} \\
+\textbf{Power factor} & \textbf{74.99} & \textbf{\%} (LEADING) \\
+\midrule
+\multicolumn{3}{c}{\textbf{Equivalent Star Impedance}} \\
+\midrule
+Star impedance, $|\ve{Z}_Y|$ & 8.8993 & $\Omega$ \\
+Star impedance formula & $\ve{Z}_{\Delta}/3$ & - \\
+Power verification & Same & - \\
+\bottomrule
+\end{tabular}
+\caption{Complete results for Exercise 2}
+\end{table}
+
+\subsection{Diagrams and Visualizations}
+
+\subsubsection{Phase Current Phasor Diagram}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{phase phasor diagram.pdf}
+    \caption{Phasor diagram showing phase voltages (line voltages in delta) and phase currents in delta branches. Note that currents \textbf{lead} voltages by $41.48^\circ$ due to capacitive load.}
+    
+\end{figure}
+
+\subsubsection{Line Current Phasor Diagram}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{line current phasor diagram.pdf}
+    \caption{Phasor diagram showing line currents. Line currents are $\sqrt{3}$ times larger than phase currents and lead them by $30^\circ$. The relationship $I_L = \sqrt{3} I_{ph}$ is clearly demonstrated.}
+    
+\end{figure}
+
+\subsubsection{Power Triangle (Capacitive Load)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{power triangle capacitive load.pdf}
+    \caption{Power triangle for capacitive load. The reactive power $Q$ is \textbf{negative}, indicating that the capacitive load \textbf{supplies} reactive power to the system (leading power factor). This is opposite to inductive loads.}
+    
+\end{figure}
+
+\subsubsection{Delta-Star Equivalence}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{delta and star config.pdf}
+    \caption{Comparison between delta and equivalent star configurations. The transformation $\ve{Z}_Y = \ve{Z}_{\Delta}/3$ ensures identical power consumption while maintaining the same line-to-line voltage. Star configuration has higher phase current equal to line current.}
+    
+\end{figure}
+
+\subsection{Key Relationships for Delta Connection}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Relationship} & \textbf{Formula} & \textbf{Verified} \\
+\midrule
+Phase voltage & $U_{ph} = U_L$ & \checkmark \\
+Line current & $I_L = \sqrt{3} \cdot I_{ph}$ & \checkmark \\
+Phase shift & Line currents lead by $30^\circ$ & \checkmark \\
+Delta-star conversion & $\ve{Z}_Y = \ve{Z}_{\Delta}/3$ & \checkmark \\
+Power equivalence & Same in both configurations & \checkmark \\
+\bottomrule
+\end{tabular}
+\caption{Verification of delta connection relationships}
+\end{table}
+
+\subsection{Comparison: Delta vs Star Configuration}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Parameter} & \textbf{Delta ($\Delta$)} & \textbf{Star (Y)} & \textbf{Ratio} \\
+\midrule
+Phase voltage & $U_L = 230$ V & $U_L/\sqrt{3} = 132.79$ V & $\sqrt{3}$ \\
+Phase current & $8.6152$ A & $14.9740$ A & $1/\sqrt{3}$ \\
+Line current & $14.9740$ A & $14.9740$ A & $1$ \\
+Phase impedance & $26.70$ $\Omega$ & $8.90$ $\Omega$ & $3$ \\
+Power per phase & $1485.72$ W & $1485.72$ W & $1$ \\
+\textbf{Total power} & \textbf{4.457 kW} & \textbf{4.457 kW} & \textbf{1} \\
+\bottomrule
+\end{tabular}
+\caption{Delta vs equivalent star comparison}
+\end{table}
+
+\subsection{Conclusions for Exercise 2}
+
+\begin{enumerate}
+    \item The capacitive load has a \textbf{leading power factor} of 74.99\%, where current leads voltage by $41.48^\circ$.
+    
+    \item The relationship $I_L = \sqrt{3} \cdot I_{ph}$ is verified with excellent accuracy (ratio = 1.7321).
+    
+    \item Line currents lead phase currents by approximately $30^\circ$ in delta configuration.
+    
+    \item The reactive power is \textbf{negative} ($Q = -3.933$ kVAR), indicating the capacitive load \textbf{supplies} reactive power to the system rather than consuming it. This is the opposite behavior of inductive loads.
+    
+    \item The delta-star transformation $\ve{Z}_Y = \ve{Z}_{\Delta}/3$ produces an equivalent circuit with:
+    \begin{itemize}
+        \item Three times smaller impedance per phase
+        \item Identical total power consumption
+        \item Same line currents
+        \item Different phase voltages and currents
+    \end{itemize}
+    
+    \item \textbf{Practical implications:}
+    \begin{itemize}
+        \item Capacitive loads can be used for power factor correction
+        \item Delta connection allows higher current per phase compared to star at same line voltage
+        \item No neutral connection available in delta (three-wire system only)
+        \item Delta configuration preferred for high-power loads
+    \end{itemize}
+    
+    \item Both calculation methods (per-phase and line values) give identical results, validating the analysis.
+\end{enumerate}
+
+
+\section{Exercise 3: Unbalanced Three-Phase System}
+
+\subsection{Problem Statement}
+
+An unbalanced three-phase star-connected system with neutral is supplied from a balanced source. Each phase has different power consumption and power factor. The analysis must determine individual phase currents, neutral current, total power, and design individual power factor correction for each phase.
+
+\subsection{Given Data}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Phase voltage, $U_{ph}$ & 220 & V \\
+Frequency, $f$ & 50 & Hz \\
+Connection type & Star with neutral & - \\
+\midrule
+\multicolumn{3}{c}{\textbf{Phase A Load}} \\
+\midrule
+Active power, $P_A$ & 3000 & W \\
+Power factor, $\cos \varphi_A$ & 0.8 & (lagging) \\
+\midrule
+\multicolumn{3}{c}{\textbf{Phase B Load}} \\
+\midrule
+Active power, $P_B$ & 2500 & W \\
+Power factor, $\cos \varphi_B$ & 1.0 & (resistive) \\
+\midrule
+\multicolumn{3}{c}{\textbf{Phase C Load}} \\
+\midrule
+Active power, $P_C$ & 2000 & W \\
+Power factor, $\cos \varphi_C$ & 0.9 & (lagging) \\
+\bottomrule
+\end{tabular}
+\caption{System specifications for Exercise 3 - Unbalanced loads}
+\end{table}
+
+\subsection{Calculations}
+
+\subsubsection{Step 1: Calculate Current Per Phase}
+
+Using the power relationship $P = U_{ph} \cdot I \cdot \cos \varphi$, we can solve for current:
+
+\textbf{Phase A:}
+\begin{equation}
+    I_A = \frac{P_A}{U_{ph} \cdot \cos \varphi_A} = \frac{3000}{220 \times 0.8} = \SI{17.0455}{A}
+\end{equation}
+
+\textbf{Phase B:}
+\begin{equation}
+    I_B = \frac{P_B}{U_{ph} \cdot \cos \varphi_B} = \frac{2500}{220 \times 1.0} = \SI{11.3636}{A}
+\end{equation}
+
+\textbf{Phase C:}
+\begin{equation}
+    I_C = \frac{P_C}{U_{ph} \cdot \cos \varphi_C} = \frac{2000}{220 \times 0.9} = \SI{10.1010}{A}
+\end{equation}
+
+\subsubsection{Step 2: Calculate Impedance Per Phase}
+
+Impedance magnitude:
+
+\textbf{Phase A:}
+\begin{equation}
+    |Z_A| = \frac{U_{ph}}{I_A} = \frac{220}{17.0455} = \SI{12.9067}{\ohm}
+\end{equation}
+
+Phase angle: $\varphi_A = \arccos(0.8) = 36.87^\circ$
+
+\begin{equation}
+    \ve{Z}_A = 12.9067 \phase{36.87} \, \Omega
+\end{equation}
+
+\textbf{Phase B:}
+\begin{equation}
+    |Z_B| = \frac{U_{ph}}{I_B} = \frac{220}{11.3636} = \SI{19.3600}{\ohm}
+\end{equation}
+
+Phase angle: $\varphi_B = \arccos(1.0) = 0^\circ$ (purely resistive)
+
+\begin{equation}
+    \ve{Z}_B = 19.3600 \phase{0} \, \Omega
+\end{equation}
+
+\textbf{Phase C:}
+\begin{equation}
+    |Z_C| = \frac{U_{ph}}{I_C} = \frac{220}{10.1010} = \SI{21.7800}{\ohm}
+\end{equation}
+
+Phase angle: $\varphi_C = \arccos(0.9) = 25.84^\circ$
+
+\begin{equation}
+    \ve{Z}_C = 21.7800 \phase{25.84} \, \Omega
+\end{equation}
+
+\subsubsection{Step 3: Form Complete Phasor Expressions}
+
+Taking $\ve{U}_{AN}$ as reference ($\phase{0}$):
+
+\textbf{Voltage phasors:}
+\begin{align}
+    \ve{U}_{AN} &= 220 \phase{0} \, \text{V} \\
+    \ve{U}_{BN} &= 220 \phase{-120} \, \text{V} \\
+    \ve{U}_{CN} &= 220 \phase{+120} \, \text{V}
+\end{align}
+
+\textbf{Current phasors:}
+
+Phase A (inductive, current lags by $36.87^\circ$):
+\begin{equation}
+    \ve{I}_A = 17.0455 \phase{-36.87} = 13.6364 - j10.2273 \, \text{A}
+\end{equation}
+
+Phase B (resistive, current in phase with voltage):
+\begin{equation}
+    \ve{I}_B = 11.3636 \phase{-120} = -5.6818 - j9.8476 \, \text{A}
+\end{equation}
+
+Phase C (inductive, current lags by $25.84^\circ$):
+\begin{equation}
+    \ve{I}_C = 10.1010 \phase{94.16} = -0.7338 + j10.0742 \, \text{A}
+\end{equation}
+
+\subsubsection{Step 4: Calculate Neutral Current}
+
+The neutral current is the vector sum of all phase currents:
+
+\begin{equation}
+    \ve{I}_N = \ve{I}_A + \ve{I}_B + \ve{I}_C
+\end{equation}
+
+In rectangular form:
+\begin{align}
+    \ve{I}_N &= (13.6364 - 5.6818 - 0.7338) + j(-10.2273 - 9.8476 + 10.0742) \\
+    &= 7.2208 - j10.0007 \, \text{A}
+\end{align}
+
+Magnitude:
+\begin{equation}
+    |\ve{I}_N| = \sqrt{7.2208^2 + 10.0007^2} = \SI{12.3345}{A}
+\end{equation}
+
+Angle:
+\begin{equation}
+    \angle \ve{I}_N = \arctan\left(\frac{-10.0007}{7.2208}\right) = -54.16^\circ
+\end{equation}
+
+\begin{equation}
+    \boxed{\ve{I}_N = 12.3345 \phase{-54.16} \, \text{A}}
+\end{equation}
+
+\textbf{Critical observation:} $|\ve{I}_N| \neq 0$ confirms the system is \textbf{UNBALANCED}.
+
+The neutral wire carries significant current and is \textbf{essential} for proper operation. If the neutral is disconnected, the neutral point would shift, causing dangerous overvoltages on some phases and undervoltages on others.
+
+\subsubsection{Step 5: Calculate Reactive Power Per Phase}
+
+Using $Q = P \tan \varphi$:
+
+\textbf{Phase A:}
+\begin{equation}
+    Q_A = P_A \tan \varphi_A = 3000 \times \tan(36.87^\circ) = 3000 \times 0.75 = \SI{2250}{VAR}
+\end{equation}
+
+\textbf{Phase B:}
+\begin{equation}
+    Q_B = P_B \tan \varphi_B = 2500 \times 0 = \SI{0}{VAR} \quad \text{(resistive)}
+\end{equation}
+
+\textbf{Phase C:}
+\begin{equation}
+    Q_C = P_C \tan \varphi_C = 2000 \times \tan(25.84^\circ) = 2000 \times 0.4843 = \SI{968.63}{VAR}
+\end{equation}
+
+\subsubsection{Step 6: Calculate Total Three-Phase Power}
+
+\textbf{Total active power:}
+\begin{equation}
+    P_{total} = P_A + P_B + P_C = 3000 + 2500 + 2000 = \SI{7500}{W} = \SI{7.5}{kW}
+\end{equation}
+
+\textbf{Total reactive power:}
+\begin{equation}
+    Q_{total} = Q_A + Q_B + Q_C = 2250 + 0 + 968.63 = \SI{3218.63}{VAR} = \SI{3.219}{kVAR}
+\end{equation}
+
+\textbf{Total apparent power:}
+\begin{equation}
+    S_{total} = \sqrt{P_{total}^2 + Q_{total}^2} = \sqrt{7500^2 + 3218.63^2} = \SI{8157.63}{VA} = \SI{8.158}{kVA}
+\end{equation}
+
+\subsubsection{Step 7: Determine Overall System Power Factor}
+
+\begin{equation}
+    \cos \varphi_{system} = \frac{P_{total}}{S_{total}} = \frac{7500}{8157.63} = 0.9194 = \SI{91.94}{\%}
+\end{equation}
+
+The overall system power factor is acceptable (above 90\%), but individual phase correction may still be beneficial.
+
+\subsubsection{Step 8: Design Individual Phase PF Correction}
+
+Target power factor: $\cos \varphi_{target} = 0.95$
+
+$\varphi_{target} = \arccos(0.95) = 18.19^\circ$
+
+\textbf{Phase A Correction:}
+
+Current reactive power: $Q_A = 2250$ VAR
+
+Target reactive power:
+\begin{equation}
+    Q_{A,new} = P_A \tan \varphi_{target} = 3000 \times \tan(18.19^\circ) = \SI{986.34}{VAR}
+\end{equation}
+
+Capacitor reactive power needed:
+\begin{equation}
+    Q_{C,A} = Q_A - Q_{A,new} = 2250 - 986.34 = \SI{1263.66}{VAR}
+\end{equation}
+
+Capacitive reactance:
+\begin{equation}
+    X_{C,A} = \frac{U_{ph}^2}{Q_{C,A}} = \frac{220^2}{1263.66} = \SI{38.29}{\ohm}
+\end{equation}
+
+Capacitance:
+\begin{equation}
+    C_A = \frac{1}{2\pi f X_{C,A}} = \frac{1}{2\pi \times 50 \times 38.29} = \SI{83.11}{\micro\farad}
+\end{equation}
+
+\textbf{Phase B Correction:}
+
+Phase B is resistive ($\cos \varphi_B = 1.0$), but to reach 0.95 we need to add capacitive compensation:
+
+\begin{equation}
+    Q_{B,new} = P_B \tan \varphi_{target} = 2500 \times 0.3287 = \SI{821.78}{VAR}
+\end{equation}
+
+Since $Q_B = 0$, we need:
+\begin{equation}
+    Q_{C,B} = 0 - (-821.78) = \SI{821.78}{VAR}
+\end{equation}
+
+\begin{equation}
+    X_{C,B} = \frac{220^2}{821.78} = \SI{58.86}{\ohm}
+\end{equation}
+
+\begin{equation}
+    C_B = \frac{1}{2\pi \times 50 \times 58.86} = \SI{54.09}{\micro\farad}
+\end{equation}
+
+\textbf{Phase C Correction:}
+
+\begin{equation}
+    Q_{C,new} = P_C \tan \varphi_{target} = 2000 \times 0.3287 = \SI{657.42}{VAR}
+\end{equation}
+
+\begin{equation}
+    Q_{C,C} = Q_C - Q_{C,new} = 968.63 - 657.42 = \SI{311.21}{VAR}
+\end{equation}
+
+\begin{equation}
+    X_{C,C} = \frac{220^2}{311.21} = \SI{155.45}{\ohm}
+\end{equation}
+
+\begin{equation}
+    C_C = \frac{1}{2\pi \times 50 \times 155.45} = \SI{20.49}{\micro\farad}
+\end{equation}
+
+\subsection{Results Summary}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Parameter} & \textbf{Phase A} & \textbf{Phase B} & \textbf{Phase C} & \textbf{Unit} \\
+\midrule
+Current magnitude & 17.0455 & 11.3636 & 10.1010 & A \\
+Current angle & -36.87 & -120.00 & 94.16 & $^\circ$ \\
+Impedance magnitude & 12.9067 & 19.3600 & 21.7800 & $\Omega$ \\
+Impedance angle & 36.87 & 0.00 & 25.84 & $^\circ$ \\
+Active power & 3000 & 2500 & 2000 & W \\
+Reactive power & 2250 & 0 & 968.63 & VAR \\
+Apparent power & 3750 & 2500 & 2222.22 & VA \\
+Power factor & 0.80 & 1.00 & 0.90 & - \\
+\midrule
+\multicolumn{5}{c}{\textbf{Power Factor Correction (to 0.95)}} \\
+\midrule
+Capacitance required & 83.11 & 54.09 & 20.49 & $\mu$F \\
+\bottomrule
+\end{tabular}
+\caption{Complete per-phase results for Exercise 3}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Total System Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Neutral current magnitude & 12.3345 & A \\
+Neutral current angle & -54.16 & $^\circ$ \\
+\midrule
+Total active power & 7.500 & kW \\
+Total reactive power & 3.219 & kVAR \\
+Total apparent power & 8.158 & kVA \\
+Overall power factor & 91.94 & \% \\
+\bottomrule
+\end{tabular}
+\caption{Total system summary for Exercise 3}
+\end{table}
+
+\subsection{Diagrams and Visualizations}
+
+\subsubsection{Unbalanced Phasor Diagram with Neutral Current}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Phasor diagram exercice3week4.pdf}
+    \caption{Phasor diagram showing unbalanced phase currents and significant neutral current. The neutral current $\ve{I}_N = 12.33$ A clearly demonstrates system imbalance. Without the neutral connection, this would cause dangerous voltage imbalances.}
+    
+\end{figure}
+
+\subsubsection{Power Distribution Per Phase}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{power distribution per phase exercice3week4.pdf}
+    \caption{Bar chart comparing active, reactive, and apparent power for each phase. Phase A has the highest power consumption and lowest power factor. Phase B is purely resistive with no reactive power.}
+    
+\end{figure}
+
+\subsubsection{Total System Power Triangle}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Total system power triangle exercice3week4.pdf}
+    \caption{Total system power triangle showing combined effect of all three phases. Overall system power factor is 91.94\%, which is acceptable but can be improved with individual phase correction.}
+    
+\end{figure}
+
+\subsubsection{Power Factor Correction Comparison}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{before after power factor percentage exercice3week4.pdf}
+    \caption{Comparison of power factors before and after correction. Individual capacitors bring each phase to 95\% power factor. Note the different capacitor sizes required for each phase due to different loads.}
+    
+\end{figure}
+
+\subsection{Importance of Neutral in Unbalanced Systems}
+
+The neutral conductor plays a \textbf{critical role} in unbalanced systems:
+
+\begin{enumerate}
+    \item \textbf{Return path for unbalanced currents:} The neutral carries $I_N = 12.33$ A, which cannot return through the phase conductors.
+    
+    \item \textbf{Maintains phase voltages:} With neutral connected, each phase maintains $U_{ph} = 220$ V regardless of load imbalance.
+    
+    \item \textbf{Safety consideration:} If neutral is disconnected:
+    \begin{itemize}
+        \item The neutral point shifts from ground potential
+        \item Lightly loaded phases experience overvoltage (can exceed 380V!)
+        \item Heavily loaded phases experience undervoltage
+        \item Equipment damage or failure is likely
+    \end{itemize}
+    
+    \item \textbf{Sizing requirement:} The neutral conductor must be sized to carry the maximum expected unbalanced current safely.
+\end{enumerate}
+
+\subsection{Conclusions for Exercise 3}
+
+\begin{enumerate}
+    \item The system is clearly \textbf{unbalanced}, confirmed by significant neutral current ($I_N = 12.33$ A).
+    
+    \item Phase currents vary significantly: Phase A draws 17.05 A while Phase C draws only 10.10 A.
+    
+    \item Individual power factors range from 80\% to 100\%, requiring \textbf{phase-specific correction}.
+    
+    \item Overall system power factor is 91.94\%, which is acceptable for many applications but below the ideal 95\% target.
+    
+    \item Individual phase correction requires different capacitor sizes:
+    \begin{itemize}
+        \item Phase A: 83.11 $\mu$F (largest, lowest initial PF)
+        \item Phase B: 54.09 $\mu$F (medium)
+        \item Phase C: 20.49 $\mu$F (smallest, highest initial PF)
+    \end{itemize}
+    
+    \item The \textbf{neutral conductor is essential} and must be properly sized. Disconnecting it would cause dangerous conditions.
+    
+    \item \textbf{Practical considerations:}
+    \begin{itemize}
+        \item Unbalanced loads are common in residential and commercial distribution
+        \item Regular monitoring of phase currents helps identify imbalance issues
+        \item Load balancing across phases should be considered during installation
+        \item Neutral current can cause heating in distribution systems
+    \end{itemize}
+    
+    \item Unlike balanced systems where calculations can be simplified, unbalanced systems require individual phase analysis with careful vector arithmetic.
+\end{enumerate}
+
+
+
+
+\section{General Conclusions}
+
+\subsection{Summary of Key Findings}
+
+This comprehensive analysis of three-phase systems has demonstrated fundamental principles applicable to power distribution and utilization:
+
+\subsubsection{Exercise 1: Balanced Star System}
+
+\begin{itemize}
+    \item Confirmed the relationship $U_L = \sqrt{3} U_{ph}$ and $I_L = I_{ph}$ for star connections
+    \item Verified neutral current equals zero for balanced loads ($I_N \approx 0$)
+    \item Identified poor power factor (53.69\%) requiring significant correction
+    \item Designed capacitor bank: 3 × 79.32 $\mu$F providing 43.5\% reduction in apparent power
+    \item Demonstrated equivalence of per-phase and line calculation methods
+\end{itemize}
+
+\subsubsection{Exercise 2: Balanced Delta System}
+
+\begin{itemize}
+    \item Verified $U_{ph} = U_L$ and $I_L = \sqrt{3} I_{ph}$ for delta connections
+    \item Observed 30° phase shift between line and phase currents
+    \item Analyzed capacitive load with leading power factor (74.99\%)
+    \item Confirmed delta-star transformation: $\ve{Z}_Y = \ve{Z}_{\Delta}/3$
+    \item Demonstrated power equivalence between delta and star configurations
+    \item Highlighted that capacitive loads supply reactive power (negative Q)
+\end{itemize}
+
+\subsubsection{Exercise 3: Unbalanced Star System}
+
+\begin{itemize}
+    \item Calculated significant neutral current (12.33 A) proving system imbalance
+    \item Analyzed three different loads with power factors ranging from 80\% to 100\%
+    \item Achieved overall system power factor of 91.94\%
+    \item Designed individual phase correction with varying capacitor sizes
+    \item Demonstrated critical importance of neutral conductor in unbalanced systems
+    \item Showed dangers of neutral disconnection (voltage imbalance)
+\end{itemize}
+
+\subsection{Comparative Analysis}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Parameter} & \textbf{Exercise 1} & \textbf{Exercise 2} & \textbf{Exercise 3} \\
+\midrule
+Configuration & Star & Delta & Star \\
+Balance & Balanced & Balanced & Unbalanced \\
+Line voltage & 230 V & 230 V & 381 V \\
+Load type & Inductive & Capacitive & Mixed \\
+Power factor & 53.69\% (lag) & 74.99\% (lead) & 91.94\% (lag) \\
+Neutral current & 0 A & N/A & 12.33 A \\
+Total power & 1.271 kW & 4.457 kW & 7.500 kW \\
+Correction needed & Yes & No & Yes (per phase) \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of three exercises}
+\end{table}
+
+\subsection{Fundamental Relationships Verified}
+
+Throughout this analysis, we have consistently verified these essential relationships:
+
+\textbf{Star Connection:}
+\begin{align}
+    U_L &= \sqrt{3} \, U_{ph} \\
+    I_L &= I_{ph} \\
+    I_N &= \sum \ve{I}_{phase} = 0 \quad \text{(balanced only)}
+\end{align}
+
+\textbf{Delta Connection:}
+\begin{align}
+    U_L &= U_{ph} \\
+    I_L &= \sqrt{3} \, I_{ph} \\
+    \text{Phase shift} &= 30^\circ
+\end{align}
+
+\textbf{Three-Phase Power (Balanced):}
+\begin{align}
+    P_{3\varphi} &= \sqrt{3} \, U_L \, I_L \, \cos \varphi = 3 \, U_{ph} \, I_{ph} \, \cos \varphi \\
+    Q_{3\varphi} &= \sqrt{3} \, U_L \, I_L \, \sin \varphi = 3 \, U_{ph} \, I_{ph} \, \sin \varphi \\
+    S_{3\varphi} &= \sqrt{3} \, U_L \, I_L = 3 \, U_{ph} \, I_{ph}
+\end{align}
+
+\textbf{Delta-Star Transformation:}
+\begin{equation}
+    \ve{Z}_Y = \frac{\ve{Z}_{\Delta}}{3}
+\end{equation}
+
+\subsection{Practical Engineering Insights}
+
+\subsubsection{Power Factor Correction}
+
+Power factor correction is essential for:
+\begin{itemize}
+    \item Reducing utility penalty charges (typical requirement: PF ≥ 0.95)
+    \item Minimizing conductor losses ($I^2R$ losses)
+    \item Reducing voltage drops in distribution lines
+    \item Increasing system capacity without infrastructure upgrades
+    \item Improving voltage regulation
+\end{itemize}
+
+\textbf{Key decision:} Star vs delta connection for capacitor banks
+\begin{itemize}
+    \item Star: Lower voltage per capacitor, easier isolation
+    \item Delta: Higher reactive power for same capacitance, no neutral required
+\end{itemize}
+
+\subsubsection{Balanced vs Unbalanced Systems}
+
+\textbf{Balanced systems} (Exercises 1 \& 2):
+\begin{itemize}
+    \item Simplified analysis using symmetry
+    \item Zero neutral current
+    \item Uniform loading of phases
+    \item Ideal for motor loads and industrial applications
+\end{itemize}
+
+\textbf{Unbalanced systems} (Exercise 3):
+\begin{itemize}
+    \item Require individual phase calculations
+    \item Significant neutral current (must be properly sized!)
+    \item Common in residential/commercial distribution
+    \item Need regular monitoring and load balancing
+\end{itemize}
+
+\subsubsection{Connection Type Selection}
+
+\textbf{Star (Y) connection preferred when:}
+\begin{itemize}
+    \item Neutral connection needed (lighting, single-phase loads)
+    \item Lower phase voltage required
+    \item Unbalanced loads expected
+    \item Distribution systems (e.g., 400/230V)
+\end{itemize}
+
+\textbf{Delta ($\Delta$) connection preferred when:}
+\begin{itemize}
+    \item Higher current capacity needed at same voltage
+    \item Motor windings (starting methods)
+    \item No neutral required
+    \item Balanced three-wire transmission
+\end{itemize}
+
+\subsection{Safety Considerations}
+
+\begin{enumerate}
+    \item \textbf{Never disconnect neutral} in unbalanced star systems:
+    \begin{itemize}
+        \item Can cause overvoltage on lightly loaded phases
+        \item May destroy equipment rated for phase voltage
+        \item Creates shock hazard
+    \end{itemize}
+    
+    \item \textbf{Proper sizing} of neutral conductor:
+    \begin{itemize}
+        \item Must handle maximum unbalanced current
+        \item In some cases, may need same size as phase conductors
+        \item Consider harmonics in modern systems (can increase neutral current)
+    \end{itemize}
+    
+    \item \textbf{Capacitor bank protection:}
+    \begin{itemize}
+        \item Discharge resistors required
+        \item Overcurrent protection for each unit
+        \item Voltage rating with safety margin
+    \end{itemize}
+    
+    \item \textbf{Regular monitoring:}
+    \begin{itemize}
+        \item Phase current imbalance
+        \item Neutral current magnitude
+        \item Power factor trends
+        \item Voltage levels on all phases
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Economic Considerations}
+
+Power factor improvement provides tangible economic benefits:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Benefit} & \textbf{Typical Savings} & \textbf{Payback Period} \\
+\midrule
+Avoided utility penalties & 10-30\% of bill & Immediate \\
+Reduced conductor losses & 5-15\% & 1-3 years \\
+Increased transformer capacity & 20-40\% & N/A (avoided cost) \\
+Extended equipment life & Variable & Long-term \\
+\bottomrule
+\end{tabular}
+\caption{Economic benefits of power factor correction}
+\end{table}
+
+\subsection{MATLAB as Analysis Tool}
+
+The MATLAB scripts developed for this analysis demonstrate:
+\begin{itemize}
+    \item Efficient complex phasor calculations
+    \item Automated verification of relationships
+    \item Professional visualization of results
+    \item Parametric analysis capability
+    \item Reusability for similar problems
+\end{itemize}
+
+These tools are essential for modern power system engineers, enabling rapid "what-if" analysis and design optimization.
+
+\subsection{Final Remarks}
+
+Three-phase power systems are fundamental to modern electrical infrastructure. This analysis has demonstrated:
+
+\begin{enumerate}
+    \item The mathematical relationships governing three-phase systems are consistent and verifiable
+    \item Both balanced and unbalanced conditions require thorough understanding
+    \item Power factor correction is both technically necessary and economically beneficial
+    \item Proper selection of connection type (star/delta) depends on application requirements
+    \item Safety considerations, especially regarding neutral conductors, are paramount
+\end{enumerate}
+
+The combination of theoretical analysis, numerical computation (MATLAB), and practical design (capacitor banks) provides a complete framework for three-phase system engineering.
+
+\textbf{Key takeaway:} Three-phase systems are not merely an academic topic but the foundation of how the modern world is powered. Understanding their operation, analysis, and optimization is essential for any electrical engineer.
+
+\subsection{Future Considerations}
+
+Modern power systems face new challenges:
+\begin{itemize}
+    \item Harmonics from non-linear loads (rectifiers, LED lighting, variable drives)
+    \item Renewable energy integration (solar, wind)
+    \item Smart grid technologies and real-time monitoring
+    \item Energy storage systems
+    \item Electric vehicle charging infrastructure
+\end{itemize}
+
+All of these build upon the fundamental three-phase principles demonstrated in this report.
+
+\textbf{\textit{END OF REPORT}}
+
+
+\end{document}
